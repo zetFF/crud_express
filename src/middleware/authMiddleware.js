@@ -1,0 +1,36 @@
+const jwt = require("jsonwebtoken");
+
+const { jwtSecret } = require("../config/auth");
+
+const authMiddleware = (req, res, next) => {
+  console.log("AUTH HEADER:", req.headers.authorization);
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({
+      message: "Token tidak ditemukan",
+    });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({
+      message: "Format token tidak valid",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+
+    req.user = decoded;
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      message: "Token tidak valid atau sudah expired",
+    });
+  }
+};
+
+module.exports = authMiddleware;
